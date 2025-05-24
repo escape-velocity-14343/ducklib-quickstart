@@ -8,7 +8,6 @@ import com.escapevelocity.ducklib.core.geometry.Radians
 import com.escapevelocity.ducklib.core.geometry.Vector2
 import com.escapevelocity.ducklib.ftc.extensions.HardwareMapEx
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE
 
 class DrivetrainSubsystem(map: HardwareMapEx) : Subsystem() {

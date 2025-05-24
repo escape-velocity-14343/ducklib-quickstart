@@ -6,12 +6,10 @@ import android.util.Log
 import com.escapevelocity.ducklib.core.command.commands.LambdaCommand
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler.Companion.schedule
-import com.escapevelocity.ducklib.core.geometry.Axis
 import com.escapevelocity.ducklib.core.geometry.Radians
 import com.escapevelocity.ducklib.core.geometry.radians
 import com.escapevelocity.ducklib.ftc.extensions.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
