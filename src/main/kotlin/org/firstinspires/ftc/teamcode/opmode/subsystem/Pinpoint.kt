@@ -36,4 +36,8 @@ class Pinpoint(map: HardwareMapEx) : Subsystem() {
             lastGoodPose = lastPose!!
         }
     }
+
+    fun resetYaw() {
+        p.pose = Pose2(p.pos, 0.0.radians)
+    }
 }

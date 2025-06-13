@@ -3,27 +3,52 @@
 package org.firstinspires.ftc.teamcode.opmode
 
 import android.util.Log
+import com.escapevelocity.ducklib.core.command.commands.Command
 import com.escapevelocity.ducklib.core.command.commands.LambdaCommand
+import com.escapevelocity.ducklib.core.command.commands.composition.IfElseCommand
+import com.escapevelocity.ducklib.core.command.commands.instant
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler
+import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler.Companion.onceOnTrue
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler.Companion.schedule
-import com.escapevelocity.ducklib.core.geometry.Radians
 import com.escapevelocity.ducklib.core.geometry.Vector2
 import com.escapevelocity.ducklib.core.geometry.radians
+import com.escapevelocity.ducklib.core.util.and
 import com.escapevelocity.ducklib.ftc.extensions.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.IMU
 import org.firstinspires.ftc.teamcode.opmode.subsystem.Drivetrain
+import org.firstinspires.ftc.teamcode.opmode.subsystem.Pinpoint
+import java.util.*
+import java.util.function.BooleanSupplier
 
 @TeleOp
 class CustomOpMode : OpMode() {
+    enum class State {
+        READY,
+        TOP_INTAKE_READY,
+        TOP_INTAKE,
+        GROUND_INTAKE_READY,
+        GROUND_INTAKE,
+        HANG,
+        OUTTAKE,
+        SPECIMEN,
+        FOLD,
+        BUCKET_ALIGN,
+    }
+
+    var state = State.READY
+
     // **NOTE**: No HardwareMap actually exists, so this is sort of like an "empty wrapper"
     val map = HardwareMapEx()
 
     // defer construction of DrivetrainSubsystem object until the HardwareMapEx is initialized
     val drivetrainSubsystem by map.deferred { Drivetrain(map) }
+    val pinpoint by map.deferred { Pinpoint(map) }
+
+    val driver by map.deferred { gamepad1 }
+    val operator by map.deferred { gamepad2 }
 
     val imu by map.deferred<IMU>("imu") {
         initialize(
@@ -44,7 +69,6 @@ class CustomOpMode : OpMode() {
         map.init(hardwareMap)
 
         // alias gamepad1 to 'driver' to make things easier to understand
-        val driver = gamepad1 as Gamepad
 
         // use a lambda command here
         // so we can capture the driver pad directly without having to pass in a DoubleSupplier
@@ -52,8 +76,8 @@ class CustomOpMode : OpMode() {
             execute = {
                 // driver gamepad references don't need suppliers since it's wrapped in a lambda
                 drivetrainSubsystem.drive(
-                    driver[VectorInput.STICK_LEFT].yx.rotated(-Radians.fromDegrees(imu.robotYawPitchRollAngles.yaw).normalized).halfLinearHalfCubic(),
-                    -driver[AnalogInput.STICK_X_RIGHT].radians
+                    driver[VectorInput.STICK_LEFT].yx.rotated(-pinpoint.pose.heading).halfLinearHalfCubic(),
+                    -driver[AnalogInput.STICK_X_RIGHT].halfLinearHalfCubic().radians
                 )
             }
             finished = { false }
@@ -63,6 +87,22 @@ class CustomOpMode : OpMode() {
                 addRequirements(drivetrainSubsystem)
             }
         }.schedule()
+
+        initDriver()
+        initOperator()
+    }
+
+    fun initDriver() {
+        driver[ButtonInput.OPTIONS].and(driver[ButtonInput.SHARE]).onceOnTrue(pinpoint::resetYaw.instant())
+        driver[ButtonInput.X].onceOnTrue(
+            IfElseCommand(
+
+                inState(State.TOP_INTAKE, State.TOP_INTAKE_READY, State.GROUND_INTAKE_READY, State.GROUND_INTAKE),
+            )
+        )
+    }
+
+    fun initOperator() {
     }
 
     override fun loop() {
@@ -75,6 +115,17 @@ class CustomOpMode : OpMode() {
     override fun stop() {
         DuckyScheduler.reset()
     }
+
+    fun setStateCommand(state: State) = { this.state = state }.instant()
+
+    fun inState(vararg state: State) = { state.any { this.state == it } }
+
+    fun currentlyInState(vararg state: State): Boolean { return state.any { this.state == it }}
+
+    fun notInState(state: State): () -> Boolean { return { this.state != state } }
+
+    fun notInAnyState(vararg state: State) = { state.none { this.state == it } }
 }
 
+fun Double.halfLinearHalfCubic() = this / 2 + this * this * this / 2
 fun Vector2.halfLinearHalfCubic() = Vector2(x / 2 + x * x * x / 2, y / 2 + y * y / 2)
