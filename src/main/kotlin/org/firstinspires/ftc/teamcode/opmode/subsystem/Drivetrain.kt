@@ -1,6 +1,4 @@
-@file:Suppress("PackageDirectoryMismatch")
-
-package org.firstinspires.ftc.teamcode
+package org.firstinspires.ftc.teamcode.opmode.subsystem
 
 import com.escapevelocity.ducklib.core.command.subsystem.Subsystem
 import com.escapevelocity.ducklib.core.geometry.Pose2
@@ -8,15 +6,15 @@ import com.escapevelocity.ducklib.core.geometry.Radians
 import com.escapevelocity.ducklib.core.geometry.Vector2
 import com.escapevelocity.ducklib.ftc.extensions.HardwareMapEx
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 
-class DrivetrainSubsystem(map: HardwareMapEx) : Subsystem() {
+class Drivetrain(map: HardwareMapEx) : Subsystem() {
     val flMotor by map.deferred<DcMotor>("frontLeft") {
-        this.direction = REVERSE
+        this.direction = DcMotorSimple.Direction.REVERSE
     }
     val frMotor by map.deferred<DcMotor>("frontRight")
     val blMotor by map.deferred<DcMotor>("backLeft") {
-        this.direction = REVERSE
+        this.direction = DcMotorSimple.Direction.REVERSE
     }
     val brMotor by map.deferred<DcMotor>("backRight")
 

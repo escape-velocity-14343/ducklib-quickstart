@@ -7,6 +7,7 @@ import com.escapevelocity.ducklib.core.command.commands.LambdaCommand
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler.Companion.schedule
 import com.escapevelocity.ducklib.core.geometry.Radians
+import com.escapevelocity.ducklib.core.geometry.Vector2
 import com.escapevelocity.ducklib.core.geometry.radians
 import com.escapevelocity.ducklib.ftc.extensions.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
@@ -14,7 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 import com.qualcomm.robotcore.hardware.IMU
-import org.firstinspires.ftc.teamcode.DrivetrainSubsystem
+import org.firstinspires.ftc.teamcode.opmode.subsystem.Drivetrain
 
 @TeleOp
 class CustomOpMode : OpMode() {
@@ -22,7 +23,7 @@ class CustomOpMode : OpMode() {
     val map = HardwareMapEx()
 
     // defer construction of DrivetrainSubsystem object until the HardwareMapEx is initialized
-    val drivetrainSubsystem by map.deferred { DrivetrainSubsystem(map) }
+    val drivetrainSubsystem by map.deferred { Drivetrain(map) }
 
     val imu by map.deferred<IMU>("imu") {
         initialize(
@@ -49,12 +50,9 @@ class CustomOpMode : OpMode() {
         // so we can capture the driver pad directly without having to pass in a DoubleSupplier
         LambdaCommand {
             execute = {
-                telemetry.addData("telemetry yaw", imu.robotYawPitchRollAngles.yaw)
-                telemetry.addData("telemetry pitch", imu.robotYawPitchRollAngles.pitch)
-                telemetry.addData("telemetry roll", imu.robotYawPitchRollAngles.roll)
                 // driver gamepad references don't need suppliers since it's wrapped in a lambda
                 drivetrainSubsystem.drive(
-                    driver[VectorInput.STICK_LEFT].yx.rotated(-Radians.fromDegrees(imu.robotYawPitchRollAngles.yaw).normalized),
+                    driver[VectorInput.STICK_LEFT].yx.rotated(-Radians.fromDegrees(imu.robotYawPitchRollAngles.yaw).normalized).halfLinearHalfCubic(),
                     -driver[AnalogInput.STICK_X_RIGHT].radians
                 )
             }
@@ -79,14 +77,4 @@ class CustomOpMode : OpMode() {
     }
 }
 
-//@TeleOp
-//class CustomOpMode : OpMode() {
-//    override fun init() {
-//
-//    }
-//
-//    override fun loop() {
-//        telemetry.addLine("$DuckyScheduler")
-//        telemetry.addLine("${gamepad1[AnalogInput.STICK_X_LEFT]}")
-//    }
-//}
+fun Vector2.halfLinearHalfCubic() = Vector2(x / 2 + x * x * x / 2, y / 2 + y * y / 2)
