@@ -29,7 +29,7 @@ class Pinpoint(map: HardwareMapEx) : Subsystem() {
 
     override fun periodic() {
         p.update()
-        if (p.pose.x.inches.isNaN() || p.pose.y.inches.isNaN() || p.pose.heading.v.isNaN() || (p.pose.x == 0.0.inches && p.pose.y == 0.0.inches && p.pose.heading == 0.0.radians)) {
+        if (p.pose.x.inches.isNaN() || p.pose.y.inches.isNaN() || p.pose.heading.radians.isNaN() || (p.pose.x == 0.0.inches && p.pose.y == 0.0.inches && p.pose.heading == 0.0.radians)) {
             lastPose = null
         } else {
             lastPose = p.pose

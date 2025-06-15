@@ -3,9 +3,7 @@
 package org.firstinspires.ftc.teamcode.opmode
 
 import android.util.Log
-import com.escapevelocity.ducklib.core.command.commands.Command
 import com.escapevelocity.ducklib.core.command.commands.LambdaCommand
-import com.escapevelocity.ducklib.core.command.commands.composition.IfElseCommand
 import com.escapevelocity.ducklib.core.command.commands.instant
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler
 import com.escapevelocity.ducklib.core.command.scheduler.DuckyScheduler.Companion.onceOnTrue
@@ -15,40 +13,15 @@ import com.escapevelocity.ducklib.core.geometry.radians
 import com.escapevelocity.ducklib.core.util.and
 import com.escapevelocity.ducklib.ftc.extensions.*
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.IMU
 import org.firstinspires.ftc.teamcode.opmode.subsystem.Drivetrain
 import org.firstinspires.ftc.teamcode.opmode.subsystem.Pinpoint
-import java.util.*
-import java.util.function.BooleanSupplier
 
 @TeleOp
-class CustomOpMode : OpMode() {
-    enum class State {
-        READY,
-        TOP_INTAKE_READY,
-        TOP_INTAKE,
-        GROUND_INTAKE_READY,
-        GROUND_INTAKE,
-        HANG,
-        OUTTAKE,
-        SPECIMEN,
-        FOLD,
-        BUCKET_ALIGN,
-    }
-
-    var state = State.READY
-
-    // **NOTE**: No HardwareMap actually exists, so this is sort of like an "empty wrapper"
-    val map = HardwareMapEx()
-
-    // defer construction of DrivetrainSubsystem object until the HardwareMapEx is initialized
-    val drivetrainSubsystem by map.deferred { Drivetrain(map) }
-    val pinpoint by map.deferred { Pinpoint(map) }
-
-    val driver by map.deferred { gamepad1 }
-    val operator by map.deferred { gamepad2 }
+class CustomOpMode : RobotOpMode() {
+    val driver by map.deferred { gamepad1!! }
+    val operator by map.deferred { gamepad2!! }
 
     val imu by map.deferred<IMU>("imu") {
         initialize(
@@ -60,8 +33,6 @@ class CustomOpMode : OpMode() {
             )
         )
     }
-
-    val dashConstant by DashboardEx["category/dashConstant", 0.0]
 
     override fun init() {
         Log.i("CustomOpMode", "Initializing hardware map")
@@ -94,22 +65,15 @@ class CustomOpMode : OpMode() {
 
     fun initDriver() {
         driver[ButtonInput.OPTIONS].and(driver[ButtonInput.SHARE]).onceOnTrue(pinpoint::resetYaw.instant())
-        driver[ButtonInput.X].onceOnTrue(
-            IfElseCommand(
-
-                inState(State.TOP_INTAKE, State.TOP_INTAKE_READY, State.GROUND_INTAKE_READY, State.GROUND_INTAKE),
-            )
-        )
+        //driver[ButtonInput.X].onceOnTrue(
+        //    IfElseCommand(
+        //
+        //        inState(State.TOP_INTAKE, State.TOP_INTAKE_READY, State.GROUND_INTAKE_READY, State.GROUND_INTAKE),
+        //    )
+        //)
     }
 
     fun initOperator() {
-    }
-
-    override fun loop() {
-        DuckyScheduler.run()
-        telemetry.addData("dashboard", dashConstant)
-        telemetry.addLine("$DuckyScheduler")
-        telemetry.update()
     }
 
     override fun stop() {
